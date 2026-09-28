@@ -39,17 +39,27 @@ jobs:
         env:
           GRADLE_OPTS: -Xmx4g
 
-      - name: Find mod JAR
+      - name: Find built JAR
         run: |
-          echo "=== JAR files in build/libs ==="
-          find project -path "*/build/libs/*.jar" -type f -print
+          echo "Looking for JAR files..."
+          find project -type f -path "*/build/libs/*.jar" -print
 
-      - name: Upload mod JAR
+          JAR=$(find project -type f -path "*/build/libs/*.jar" \
+            ! -name "*-sources.jar" \
+            ! -name "*-dev.jar" \
+            | head -n 1)
+
+          if [ -z "$JAR" ]; then
+            echo "No built JAR found!"
+            exit 1
+          fi
+
+          echo "Found: $JAR"
+          cp "$JAR" QuickBedWars.jar
+
+      - name: Upload mod
         uses: actions/upload-artifact@v4
         with:
           name: QuickBedWars-Mod
-          path: |
-            project/**/build/libs/QuickBedWars-*.jar
-            !project/**/build/libs/*-sources.jar
-            !project/**/build/libs/*-dev.jar
+          path: QuickBedWars.jar
           if-no-files-found: error
