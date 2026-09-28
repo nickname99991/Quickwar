@@ -37,8 +37,12 @@ jobs:
         env:
           GRADLE_OPTS: -Xmx4g
 
-      - name: Upload JAR
+       - name: Find and Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: QuickBedWars-JAR
-          path: project/**/build/libs/*.jar
+          path: |
+            **/*.jar
+            !**/*-sources.jar
+            !**/*-dev.jar
+          if-no-files-found: error
