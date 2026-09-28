@@ -28,11 +28,30 @@ jobs:
           mkdir project
           unzip -q QuickBedWars-Forge1.8.9.zip -d project
 
+      - name: Fix ClientRegistry
+        run: |
+          FILE=$(find project -path "*/src/main/java/*/QuickBedWars.java" -print -quit)
+
+          if [ -z "$FILE" ]; then
+            echo "QuickBedWars.java not found"
+            find project -type f | sort
+            exit 1
+          fi
+
+          echo "Found: $FILE"
+
+          sed -i 's/import net\.minecraftforge\.client\.ClientRegistry;/import net.minecraftforge.fml.client.registry.ClientRegistry;/' "$FILE"
+
+          echo "Fixed ClientRegistry import:"
+          grep "ClientRegistry" "$FILE"
+
       - name: Find project
         run: |
           BUILD_FILE=$(find project -name build.gradle -print -quit)
+
           if [ -z "$BUILD_FILE" ]; then
-            echo "ERROR: build.gradle not found"
+            echo "build.gradle not found"
+            find project -type f | sort
             exit 1
           fi
 
@@ -42,7 +61,7 @@ jobs:
       - name: Build
         run: |
           cd "$PROJECT_DIR"
-          ../../gradle-2.14.1/bin/gradle build --no-daemon
+          "$GITHUB_WORKSPACE/gradle-2.14.1/bin/gradle" build --no-daemon
 
       - name: Find JAR
         run: |
@@ -52,8 +71,8 @@ jobs:
             -print -quit)
 
           if [ -z "$JAR" ]; then
-            echo "ERROR: JAR not found"
-            find project -type f | sort
+            echo "JAR not found"
+            find project -type f -name "*.jar" | sort
             exit 1
           fi
 
